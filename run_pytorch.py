@@ -30,7 +30,7 @@ def run_tensor(inputs):
         ct.random_control(p_ctrl=p_ctrl,p_proj=p_proj)
         torch.cuda.empty_cache()
     if not ancilla:
-        ct.normalize_(ct.vec)
+        # ct.normalize_(ct.vec) This is problematic
         MI=ct.bipartite_mutual_information(np.arange(0,ct.L//4),np.arange(0,ct.L//4)+ct.L//2,selfaverage=False)
         TMI=ct.tripartite_mutual_information(np.arange(ct.L//4),np.arange(ct.L//4)+ct.L//4,np.arange(ct.L//4)+(ct.L//4)*2,selfaverage=False)
         return MI, TMI
@@ -84,7 +84,7 @@ if __name__=="__main__":
 
     if not args.ancilla:
 
-        rs=results.reshape((L_list.shape[0],p_ctrl_list.shape[0],p_proj_list.shape[0],3,args.es))
+        rs=results.reshape((L_list.shape[0],p_ctrl_list.shape[0],p_proj_list.shape[0],2,args.es))
         MI_map,TMI_map=rs[:,:,:,0,:],rs[:,:,:,1,:]
         save_dict={"MI":MI_map,"TMI":TMI_map,"args":args}
     else:
