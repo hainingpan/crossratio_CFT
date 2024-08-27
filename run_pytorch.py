@@ -21,7 +21,8 @@ def convert_to_fraction(fraction_str):
         else:
             fractions.append(int(item))
     return fractions
-
+def eta(r,L):
+    return torch.sin(torch.pi/L*r)**2
 def run_tensor(inputs):
     L,p_ctrl,p_proj,xj,complex128,seed,ancilla,ensemble,add_x,no_feedback=inputs
     ct=CT_tensor(L=L,seed=seed,xj=xj,gpu=True,complex128=complex128,_eps=1e-5,ensemble=ensemble,ancilla=ancilla,add_x=add_x,feedback=(not no_feedback))
@@ -37,8 +38,10 @@ def run_tensor(inputs):
         # return MI, TMI
 
         # compute MI vs eta
-        MI_eta=torch.stack([ct_r.bipartite_mutual_information(np.arange(0,r),np.arange(0,r)+ct_r.L//2,) for r in range(1,L//2)])
+        MI_eta=torch.stack([ct.bipartite_mutual_information(np.arange(0,r),np.arange(0,r)+ct.L//2,) for r in range(1,ct.L//2)])
         eta_list=eta(torch.arange(1,L//2),L)
+        print(MI_eta.shape)
+        print(eta_list.shape)
         return MI_eta, eta_list
     else:
         raise ValueError("Not implemented yet")
@@ -85,25 +88,31 @@ if __name__=="__main__":
         gc.collect()
         torch.cuda.empty_cache()
 
-
-    results=torch.cat([torch.cat(tensors) for tensors in results])
-
-    if not args.ancilla:
+    # For MI
+    # results=torch.cat([torch.cat(tensors) for tensors in results])
+    # if not args.ancilla:
         # For MI
         # rs=results.reshape((L_list.shape[0],p_ctrl_list.shape[0],p_proj_list.shape[0],2,args.es))
         # MI_map,TMI_map=rs[:,:,:,0,:],rs[:,:,:,1,:]
         # save_dict={"MI":MI_map,"TMI":TMI_map,"args":args}
-
-        # For MI vs eta
-        save_dict={"rs":results,"args":args}
-    else:
-        raise ValueError("Not implemented yet")
+    # else:
+        # raise ValueError("Not implemented yet")
         # rs=results.reshape((L_list.shape[0],p_ctrl_list.shape[0],p_proj_list.shape[0],1,args.es))
         # SA_map=rs[:,:,:,0,:]
         # save_dict={"SA":SA_map,"args":args}
 
+    # For MI vs eta
+    assert L_list.shape[0]==1, 'length of L_list should be one'
+    inputs_idx=[(L_idx,p_ctrl_idx,p_proj_idx) for L_idx in range(L_list.shape[0]) for p_ctrl_idx in range(p_ctrl_list.shape[0]) for p_proj_idx in range(p_proj_list.shape[0])]
+    MI_map=torch.zeros((L_list.shape[0],p_ctrl_list.shape[0],p_proj_list.shape[0],L_list[0]//2-1,args.es,1),dtype=torch.double)
+    eta_map=torch.zeros((L_list.shape[0],p_ctrl_list.shape[0],p_proj_list.shape[0],L_list[0]//2-1),dtype=torch.double)
+    for tensors,idx in zip(results,inputs_idx):
+        MI_eta, eta_list = tensors
+        MI_map[idx]=MI_eta
+        eta_map[idx]=eta_list
+    save_dict={"MI_eta":MI_map,"eta":eta_map,"args":args}
 
-    with open('CT_MI_En{:d}_pctrl({:.2f},{:.2f},{:.0f})_pproj({:.2f},{:.2f},{:.0f})_L({:d},{:d},{:d})_xj({:s})_seed{:d}{:s}{:s}{:s}{:s}.pickle'.format(args.es,*args.p_ctrl,*args.p_proj,*args.L,args.xj.replace('/','-'),args.seed,'_128' if args.complex128 else '_64','_anc'*args.ancilla,f'_x{args.add_x}'*(args.add_x!=0),'_nFB'*(args.no_feedback)),'wb') as f:
+    with open('CT_MI_eta_En{:d}_pctrl({:.2f},{:.2f},{:.0f})_pproj({:.2f},{:.2f},{:.0f})_L({:d},{:d},{:d})_xj({:s})_seed{:d}{:s}{:s}{:s}{:s}.pickle'.format(args.es,*args.p_ctrl,*args.p_proj,*args.L,args.xj.replace('/','-'),args.seed,'_128' if args.complex128 else '_64','_anc'*args.ancilla,f'_x{args.add_x}'*(args.add_x!=0),'_nFB'*(args.no_feedback)),'wb') as f:
         pickle.dump(save_dict, f)
 
     print('Time elapsed: {:.4f}'.format(time.time()-st))
