@@ -18,3 +18,5 @@ Fig/*
 *.mem
 *.bak
 _ipython-input-*-profile
+J*.sh
+rqc

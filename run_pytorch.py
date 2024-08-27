@@ -1,5 +1,5 @@
-import sys
-sys.path.append('../control_transition')
+# import sys
+# sys.path.append('../control_transition')
 from rqc.CT_tensor import CT_tensor
 import numpy as np
 import pickle
@@ -31,9 +31,15 @@ def run_tensor(inputs):
         torch.cuda.empty_cache()
     if not ancilla:
         # ct.normalize_(ct.vec) This is problematic
-        MI=ct.bipartite_mutual_information(np.arange(0,ct.L//4),np.arange(0,ct.L//4)+ct.L//2,selfaverage=False)
-        TMI=ct.tripartite_mutual_information(np.arange(ct.L//4),np.arange(ct.L//4)+ct.L//4,np.arange(ct.L//4)+(ct.L//4)*2,selfaverage=False)
-        return MI, TMI
+        # MI=ct.bipartite_mutual_information(np.arange(0,ct.L//4),np.arange(0,ct.L//4)+ct.L//2,selfaverage=False)
+        # MI=ct.bipartite_mutual_information(np.arange(0,ct.L//8),np.arange(0,ct.L//8)+ct.L//2,selfaverage=False)
+        # TMI=ct.tripartite_mutual_information(np.arange(ct.L//4),np.arange(ct.L//4)+ct.L//4,np.arange(ct.L//4)+(ct.L//4)*2,selfaverage=False)
+        # return MI, TMI
+
+        # compute MI vs eta
+        MI_eta=torch.stack([ct_r.bipartite_mutual_information(np.arange(0,r),np.arange(0,r)+ct_r.L//2,) for r in range(1,L//2)])
+        eta_list=eta(torch.arange(1,L//2),L)
+        return MI_eta, eta_list
     else:
         raise ValueError("Not implemented yet")
         # ct.normalize_(ct.vec)
@@ -83,10 +89,13 @@ if __name__=="__main__":
     results=torch.cat([torch.cat(tensors) for tensors in results])
 
     if not args.ancilla:
+        # For MI
+        # rs=results.reshape((L_list.shape[0],p_ctrl_list.shape[0],p_proj_list.shape[0],2,args.es))
+        # MI_map,TMI_map=rs[:,:,:,0,:],rs[:,:,:,1,:]
+        # save_dict={"MI":MI_map,"TMI":TMI_map,"args":args}
 
-        rs=results.reshape((L_list.shape[0],p_ctrl_list.shape[0],p_proj_list.shape[0],2,args.es))
-        MI_map,TMI_map=rs[:,:,:,0,:],rs[:,:,:,1,:]
-        save_dict={"MI":MI_map,"TMI":TMI_map,"args":args}
+        # For MI vs eta
+        save_dict={"rs":results,"args":args}
     else:
         raise ValueError("Not implemented yet")
         # rs=results.reshape((L_list.shape[0],p_ctrl_list.shape[0],p_proj_list.shape[0],1,args.es))
