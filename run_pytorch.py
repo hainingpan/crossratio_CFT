@@ -40,8 +40,6 @@ def run_tensor(inputs):
         # compute MI vs eta
         MI_eta=torch.stack([ct.bipartite_mutual_information(np.arange(0,r),np.arange(0,r)+ct.L//2,) for r in range(1,ct.L//2)])
         eta_list=eta(torch.arange(1,L//2),L)
-        print(MI_eta.shape)
-        print(eta_list.shape)
         return MI_eta, eta_list
     else:
         raise ValueError("Not implemented yet")
