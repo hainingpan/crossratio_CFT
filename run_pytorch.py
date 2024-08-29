@@ -40,6 +40,7 @@ def run_tensor(inputs):
         # compute MI vs eta
         MI_eta=torch.stack([ct.bipartite_mutual_information(np.arange(0,r),np.arange(0,r)+ct.L//2,) for r in range(1,ct.L//2)])
         eta_list=eta(torch.arange(1,L//2),L)
+        MI_eta=MI_eta.permute(1, 2, 0) # change the MI to be (ensemble_m, ensemble_C,r)
         return MI_eta, eta_list
     else:
         raise ValueError("Not implemented yet")
@@ -102,7 +103,7 @@ if __name__=="__main__":
     # For MI vs eta
     assert L_list.shape[0]==1, 'length of L_list should be one'
     inputs_idx=[(L_idx,p_ctrl_idx,p_proj_idx) for L_idx in range(L_list.shape[0]) for p_ctrl_idx in range(p_ctrl_list.shape[0]) for p_proj_idx in range(p_proj_list.shape[0])]
-    MI_map=torch.zeros((L_list.shape[0],p_ctrl_list.shape[0],p_proj_list.shape[0],L_list[0]//2-1,args.es,1),dtype=torch.double)
+    MI_map=torch.zeros((L_list.shape[0],p_ctrl_list.shape[0],p_proj_list.shape[0],args.es,1,L_list[0]//2-1),dtype=torch.double)
     eta_map=torch.zeros((L_list.shape[0],p_ctrl_list.shape[0],p_proj_list.shape[0],L_list[0]//2-1),dtype=torch.double)
     for tensors,idx in zip(results,inputs_idx):
         MI_eta, eta_list = tensors
