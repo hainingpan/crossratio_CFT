@@ -22,6 +22,7 @@ def convert_to_fraction(fraction_str):
             fractions.append(int(item))
     return fractions
 def eta(r,L):
+    """r12=r34=r, r23=L/2"""
     return torch.sin(torch.pi/L*r)**2
 def run_tensor(inputs):
     L,p_ctrl,p_proj,xj,complex128,seed,ancilla,ensemble,add_x,no_feedback=inputs
@@ -38,7 +39,7 @@ def run_tensor(inputs):
         # return MI, TMI
 
         # compute MI vs eta
-        MI_eta=torch.stack([ct.bipartite_mutual_information(np.arange(0,r),np.arange(0,r)+ct.L//2,) for r in range(1,ct.L//2)])
+        MI_eta=torch.stack([ct.bipartite_mutual_information(np.arange(0,r),np.arange(0,r)+ct.L//2,selfaverage=True) for r in range(1,ct.L//2)])
         eta_list=eta(torch.arange(1,L//2),L)
         MI_eta=MI_eta.permute(1, 2, 0) # change the MI to be (ensemble_m, ensemble_C,r)
         return MI_eta, eta_list
@@ -111,7 +112,7 @@ if __name__=="__main__":
         eta_map[idx]=eta_list
     save_dict={"MI_eta":MI_map,"eta":eta_map,"args":args}
 
-    with open('CT_MI_eta_En{:d}_pctrl({:.2f},{:.2f},{:.0f})_pproj({:.2f},{:.2f},{:.0f})_L({:d},{:d},{:d})_xj({:s})_seed{:d}{:s}{:s}{:s}{:s}.pickle'.format(args.es,*args.p_ctrl,*args.p_proj,*args.L,args.xj.replace('/','-'),args.seed,'_128' if args.complex128 else '_64','_anc'*args.ancilla,f'_x{args.add_x}'*(args.add_x!=0),'_nFB'*(args.no_feedback)),'wb') as f:
+    with open('CT_MI_eta_En{:d}_pctrl({:.3f},{:.3f},{:.0f})_pproj({:.3f},{:.3f},{:.0f})_L({:d},{:d},{:d})_xj({:s})_seed{:d}{:s}{:s}{:s}{:s}.pickle'.format(args.es,*args.p_ctrl,*args.p_proj,*args.L,args.xj.replace('/','-'),args.seed,'_128' if args.complex128 else '_64','_anc'*args.ancilla,f'_x{args.add_x}'*(args.add_x!=0),'_nFB'*(args.no_feedback)),'wb') as f:
         pickle.dump(save_dict, f)
 
     print('Time elapsed: {:.4f}'.format(time.time()-st))
