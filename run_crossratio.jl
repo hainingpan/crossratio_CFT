@@ -32,7 +32,6 @@ function run_dw_t(L::Int,p_ctrl::Float64,p_proj::Float64,seed::Int)
     # x0=random_int(seed,0,2^L-1)//2^L # at random k, with label x00, here seed needs a redefinition, maybe can be seed_v
     i=L
     tf=(ct.ancilla ==0) ? 2*ct.L^2 : div(ct.L^2,2)
-    
     for idx in 1:tf
         i=CT.random_control!(ct,i,p_ctrl,p_proj)
     end
