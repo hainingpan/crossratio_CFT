@@ -36,7 +36,7 @@ function run_dw_t(L::Int,p_ctrl::Float64,p_proj::Float64,seed::Int)
     for idx in 1:tf
         i=CT.random_control!(ct,i,p_ctrl,p_proj)
     end
-    MI=bipartite_mutual_information_self_average(ct,0)
+    MI=CT.bipartite_mutual_information_self_average(ct,0)
     return Dict("MI"=>MI)
 end
 
