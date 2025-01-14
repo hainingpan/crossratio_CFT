@@ -73,7 +73,7 @@ function main()
     args = parse_my_args()
     results = run_dw_t(args["L"], args["p_ctrl"], args["p_proj"], args["seed"])
 
-    filename = "MPS_(0,1)_L$(args["L"])_pctrl$(@sprintf("%.3f", args["p_ctrl"]))_pproj$(@sprintf("%.3f", args["p_proj"]))_sC$(args["seed"])_MI1_8.json"
+    filename = "MPS_(0,1)_L$(args["L"])_pctrl$(@sprintf("%.3f", args["p_ctrl"]))_pproj$(@sprintf("%.3f", args["p_proj"]))_s$(args["seed"])_MI1_8.json"
     data_to_serialize = merge(results, Dict("args" => args))
     json_data = JSON.json(data_to_serialize)
     open(filename, "w") do f
